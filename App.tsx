@@ -42,18 +42,12 @@ const initialTenants: Tenant[] = [
   { id: 't1', firstName: 'Max', lastName: 'Mustermann', email: 'max@example.com', phone: '0170-1234567', startDate: '2022-01-01' }
 ];
 
-const initialReminders: Reminder[] = [
-  { id: 'r1', title: 'Zählerablesung Strom', date: '2024-06-30', category: ReminderCategory.METER, isDone: false, propertyId: 'p1' },
-  { id: 'r2', title: 'Steuererklärung 2023', date: '2024-07-31', category: ReminderCategory.TAX, isDone: false },
-  { id: 'r3', title: 'Zinsbindung DKB prüfen', date: '2031-01-01', category: ReminderCategory.LOAN_EXPIRY, isDone: false, propertyId: 'p1' }
-];
-
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<View>('dashboard');
   const [viewParams, setViewParams] = useState<any>(null);
   const [properties, setProperties] = useState<Property[]>(initialProperties);
   const [tenants, setTenants] = useState<Tenant[]>(initialTenants);
-  const [reminders, setReminders] = useState<Reminder[]>(initialReminders);
+  const [reminders, setReminders] = useState<Reminder[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [handymen, setHandymen] = useState<Handyman[]>([]);
   const [owners, setOwners] = useState<Owner[]>([]);
@@ -64,50 +58,55 @@ const App: React.FC = () => {
     setCurrentView(v);
     setViewParams(params);
     setIsSidebarOpen(false);
+    window.scrollTo(0, 0);
   };
 
   const addTransaction = (t: Transaction) => setTransactions(prev => [...prev, t]);
 
   const viewLabels: Record<View, string> = {
-    dashboard: 'Übersicht',
-    properties: 'Immobilien',
+    dashboard: 'Home',
+    properties: 'Objekte',
     tenants: 'Mieter',
     finances: 'Finanzen',
     contacts: 'Kontakte',
-    tools: 'KI-Tools',
-    investor: 'Investor-Performance'
+    tools: 'KI-Assistenz',
+    investor: 'Investor'
   };
 
   return (
     <div className="flex min-h-screen bg-slate-50">
-      <div className={`${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 fixed lg:static z-50 transition-transform duration-300`}>
+      {/* Desktop Sidebar */}
+      <div className={`${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 fixed lg:static z-50 transition-transform duration-300 h-full`}>
         <Sidebar currentView={currentView} setView={setView} />
       </div>
 
+      {/* Overlay */}
       {isSidebarOpen && (
-        <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={() => setIsSidebarOpen(false)} />
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 lg:hidden" onClick={() => setIsSidebarOpen(false)} />
       )}
       
-      <main className="flex-1 lg:ml-0 p-4 md:p-8 pb-24 lg:pb-8">
-        <header className="mb-6 flex justify-between items-center bg-white lg:bg-transparent p-4 lg:p-0 -mx-4 lg:mx-0 shadow-sm lg:shadow-none sticky top-0 lg:static z-30">
-          <div className="flex items-center space-x-3">
-            <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-lg">
-              <i className="fa-solid fa-bars text-xl"></i>
+      <main className="flex-1 p-4 md:p-8 pb-32 lg:pb-8">
+        <header className="mb-8 flex justify-between items-center bg-white/80 backdrop-blur shadow-sm lg:shadow-none p-4 rounded-2xl lg:p-0 lg:bg-transparent sticky top-4 z-30 lg:static">
+          <div className="flex items-center space-x-4">
+            <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden p-2 text-slate-600 active:scale-90 transition-transform">
+              <i className="fa-solid fa-bars-staggered text-xl"></i>
             </button>
             <div>
-              <h1 className="text-xl md:text-3xl font-bold text-slate-800">{viewLabels[currentView]}</h1>
-              <p className="hidden md:block text-slate-500 mt-1">Ihr Portfolio auf einen Blick.</p>
+              <h1 className="text-xl md:text-3xl font-black text-slate-800 tracking-tight">{viewLabels[currentView]}</h1>
+              <p className="hidden md:block text-slate-500 font-medium text-sm">Willkommen zurück, Vermieter.</p>
             </div>
           </div>
-          <div className="flex items-center space-x-2 md:space-x-4">
-            <button className="bg-slate-100 p-2 rounded-full hover:bg-slate-200 transition">
-              <i className="fa-solid fa-bell text-slate-500"></i>
-            </button>
-            <div className="h-8 w-8 md:h-10 md:w-10 bg-indigo-600 rounded-full flex items-center justify-center text-white font-bold text-sm md:text-base">VM</div>
+          <div className="flex items-center space-x-3">
+             <button onClick={() => setView('tools')} className="bg-indigo-50 text-indigo-600 p-2.5 rounded-xl hover:bg-indigo-100 transition active:scale-95">
+                <i className="fa-solid fa-wand-magic-sparkles"></i>
+             </button>
+             <div className="h-10 w-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-black shadow-lg shadow-indigo-200">
+               VM
+             </div>
           </div>
         </header>
 
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
           {currentView === 'dashboard' && (
             <Dashboard 
               properties={properties} 
@@ -156,26 +155,23 @@ const App: React.FC = () => {
         </div>
       </main>
 
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 px-6 py-3 flex justify-between items-center z-40 shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
-        <button onClick={() => setView('dashboard')} className={`flex flex-col items-center space-y-1 ${currentView === 'dashboard' ? 'text-indigo-600' : 'text-slate-400'}`}>
-          <i className="fa-solid fa-chart-pie text-lg"></i>
-          <span className="text-[10px] font-bold">Dashboard</span>
-        </button>
-        <button onClick={() => setView('properties')} className={`flex flex-col items-center space-y-1 ${currentView === 'properties' ? 'text-indigo-600' : 'text-slate-400'}`}>
-          <i className="fa-solid fa-building text-lg"></i>
-          <span className="text-[10px] font-bold">Objekte</span>
-        </button>
-        <button onClick={() => setView('investor')} className={`flex flex-col items-center space-y-1 ${currentView === 'investor' ? 'text-indigo-600' : 'text-slate-400'}`}>
-          <i className="fa-solid fa-sack-dollar text-lg"></i>
-          <span className="text-[10px] font-bold">Invest</span>
-        </button>
-        <button onClick={() => setView('finances')} className={`flex flex-col items-center space-y-1 ${currentView === 'finances' ? 'text-indigo-600' : 'text-slate-400'}`}>
-          <i className="fa-solid fa-euro-sign text-lg"></i>
-          <span className="text-[10px] font-bold">Finanzen</span>
-        </button>
+      {/* Mobile Tab Bar - Nur für Smartphones sichtbar */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-slate-100 px-6 pt-3 pb-8 flex justify-between items-center z-40 shadow-[0_-8px_20px_rgba(0,0,0,0.05)]">
+        <NavIconButton active={currentView === 'dashboard'} onClick={() => setView('dashboard')} icon="fa-house" label="Home" />
+        <NavIconButton active={currentView === 'properties'} onClick={() => setView('properties')} icon="fa-building" label="Objekte" />
+        <NavIconButton active={currentView === 'finances'} onClick={() => setView('finances')} icon="fa-wallet" label="Finanzen" />
+        <NavIconButton active={currentView === 'contacts'} onClick={() => setView('contacts')} icon="fa-address-book" label="Kontakte" />
+        <NavIconButton active={currentView === 'tools'} onClick={() => setView('tools')} icon="fa-robot" label="KI" />
       </nav>
     </div>
   );
 };
+
+const NavIconButton = ({ active, onClick, icon, label }: { active: boolean, onClick: () => void, icon: string, label: string }) => (
+  <button onClick={onClick} className={`flex flex-col items-center space-y-1 transition-all ${active ? 'text-indigo-600 scale-110' : 'text-slate-400'}`}>
+    <i className={`fa-solid ${icon} text-xl`}></i>
+    <span className="text-[10px] font-black uppercase tracking-widest">{label}</span>
+  </button>
+);
 
 export default App;
