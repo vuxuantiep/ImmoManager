@@ -13,18 +13,44 @@ import PropertyEditor from './PropertyEditor.tsx';
 import AIFeedbackAssistant from './AIFeedbackAssistant.tsx';
 
 const initialOwners: Owner[] = [
-  { id: 'o1', name: 'Vu Xuan Tiep', email: 'vuxuantiep@gmail.com', phone: '0123', address: 'Heimweg 1', zip: '10115', city: 'Berlin' }
+  { id: 'o1', name: 'Mustermann Immobilien', email: 'vermietung@mustermann.de', phone: '089-1234567', address: 'Musterstraße 12', zip: '80331', city: 'München' }
+];
+
+const initialTenants: Tenant[] = [
+  { id: 't1', firstName: 'Laura', lastName: 'Schmidt', email: 'laura.s@example.com', phone: '0151-1234567', unitId: 'u1', startDate: '2023-05-01', persons: 2 },
+  { id: 't2', firstName: 'Felix', lastName: 'Müller', email: 'felix.m@example.com', phone: '0172-9876543', unitId: 'u2', startDate: '2024-02-15', persons: 1 },
+  { id: 't3', firstName: 'Sabine', lastName: 'Weber', email: 's.weber@example.com', phone: '0160-5556667', unitId: 'u3', startDate: '2020-08-01', persons: 3 }
 ];
 
 const initialProperties: Property[] = [
   {
     id: 'p1',
-    name: 'Mein Erstobjekt',
-    type: HouseType.CONDO,
-    address: 'Kurfürstendamm 100, 10709 Berlin',
+    name: 'Mehrfamilienhaus Sonnenweg',
+    type: HouseType.APARTMENT_BUILDING,
+    address: 'Sonnenweg 15, 80331 München',
     ownerId: 'o1',
-    units: [{ id: 'u1', number: '1A', type: UnitType.RESIDENTIAL, size: 45, baseRent: 500, utilityPrepayment: 120 }]
+    units: [
+      { id: 'u1', number: 'EG Links', type: UnitType.RESIDENTIAL, size: 75, baseRent: 1100, utilityPrepayment: 250, tenantId: 't1' },
+      { id: 'u2', number: '1. OG Rechts', type: UnitType.RESIDENTIAL, size: 55, baseRent: 850, utilityPrepayment: 180, tenantId: 't2' },
+      { id: 'u3', number: 'Penthouse', type: UnitType.RESIDENTIAL, size: 120, baseRent: 2100, utilityPrepayment: 400, tenantId: 't3' }
+    ]
   }
+];
+
+const initialTransactions: Transaction[] = [
+  { id: 'tr1', propertyId: 'p1', amount: 1350, type: TransactionType.INCOME, category: 'Mieteingang', description: 'Miete + NK EG Links', date: new Date(new Date().getFullYear(), new Date().getMonth(), 3).toISOString().split('T')[0] },
+  { id: 'tr2', propertyId: 'p1', amount: 1030, type: TransactionType.INCOME, category: 'Mieteingang', description: 'Miete + NK 1. OG', date: new Date(new Date().getFullYear(), new Date().getMonth(), 2).toISOString().split('T')[0] },
+  { id: 'tr3', propertyId: 'p1', amount: 2500, type: TransactionType.INCOME, category: 'Mieteingang', description: 'Miete + NK Penthouse', date: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0] },
+  { id: 'tr4', propertyId: 'p1', amount: -650, type: TransactionType.EXPENSE, category: 'Heizung/Warmwasser', description: 'Abschlag Stadtwerke', date: new Date(new Date().getFullYear(), new Date().getMonth(), 5).toISOString().split('T')[0] },
+  { id: 'tr5', propertyId: 'p1', amount: -120, type: TransactionType.EXPENSE, category: 'Wasser/Abwasser', description: 'Abschlag Wasserwerke', date: new Date(new Date().getFullYear(), new Date().getMonth(), 8).toISOString().split('T')[0] },
+  { id: 'tr6', propertyId: 'p1', amount: 1350, type: TransactionType.INCOME, category: 'Mieteingang', description: 'Miete + NK EG Links', date: new Date(new Date().getFullYear(), new Date().getMonth() - 1, 3).toISOString().split('T')[0] },
+  { id: 'tr7', propertyId: 'p1', amount: 1030, type: TransactionType.INCOME, category: 'Mieteingang', description: 'Miete + NK 1. OG', date: new Date(new Date().getFullYear(), new Date().getMonth() - 1, 2).toISOString().split('T')[0] },
+  { id: 'tr8', propertyId: 'p1', amount: 2500, type: TransactionType.INCOME, category: 'Mieteingang', description: 'Miete + NK Penthouse', date: new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1).toISOString().split('T')[0] },
+];
+
+const initialReminders: Reminder[] = [
+  { id: 'r1', title: 'Nebenkostenabrechnung 2024 erstellen', dueDate: new Date(new Date().getFullYear(), 11, 31).toISOString().split('T')[0], completed: false },
+  { id: 'r2', title: 'Zählerstände ablesen Sonnenweg', dueDate: new Date(new Date().getFullYear(), 5, 30).toISOString().split('T')[0], completed: false }
 ];
 
 const App: React.FC = () => {
@@ -32,10 +58,10 @@ const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<View>('dashboard');
   const [viewParams, setViewParams] = useState<any>(null);
   const [properties, setProperties] = useState<Property[]>(initialProperties);
-  const [tenants, setTenants] = useState<Tenant[]>([]);
+  const [tenants, setTenants] = useState<Tenant[]>(initialTenants);
   const [owners, setOwners] = useState<Owner[]>(initialOwners);
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [reminders, setReminders] = useState<Reminder[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>(initialTransactions);
+  const [reminders, setReminders] = useState<Reminder[]>(initialReminders);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [editingPropertyId, setEditingPropertyId] = useState<string | null>(null);
   const [showImpressum, setShowImpressum] = useState(false);
@@ -48,6 +74,13 @@ const App: React.FC = () => {
     setViewParams(params);
     setIsSidebarOpen(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    if (params?.editPropertyId) {
+      setEditingPropertyId(params.editPropertyId);
+      setViewParams(prev => ({ ...prev, initialTab: params.tab }));
+    } else if (v !== 'properties' && v !== 'tools') {
+      setEditingPropertyId(null);
+    }
   };
 
   const handleUpdateProperty = (updated: Property, updatedTransactions?: Transaction[]) => {
@@ -79,6 +112,11 @@ const App: React.FC = () => {
     if (!currentUser) return setShowAuthModal(true);
     setCurrentUser(prev => prev ? { ...prev, tier } : null);
     setShowPricing(false);
+  };
+
+  const handleEditProperty = (id: string, tab?: 'general' | 'units' | 'costs' | 'meters' | 'finance') => {
+    setEditingPropertyId(id);
+    setViewParams(prev => ({ ...prev, initialTab: tab }));
   };
 
   const currentEditingProperty = properties.find(p => p.id === editingPropertyId);
@@ -120,7 +158,7 @@ const App: React.FC = () => {
             />
           )}
           {currentView === 'properties' && (
-            <PropertiesList properties={properties} setProperties={setProperties} setView={setView} onEditProperty={setEditingPropertyId} onCheckLimit={() => checkLimit('property')} />
+            <PropertiesList properties={properties} setProperties={setProperties} setView={setView} onEditProperty={handleEditProperty} onCheckLimit={() => checkLimit('property')} />
           )}
           {currentView === 'tenants' && (
             <TenantManager tenants={tenants} setTenants={setTenants} properties={properties} transactions={transactions} />
@@ -187,7 +225,7 @@ const App: React.FC = () => {
       )}
 
       {currentEditingProperty && (
-        <PropertyEditor property={currentEditingProperty} tenants={tenants} owners={owners} templates={[]} transactions={transactions} onSave={handleUpdateProperty} onCancel={() => setEditingPropertyId(null)} />
+        <PropertyEditor property={currentEditingProperty} tenants={tenants} owners={owners} templates={[]} transactions={transactions} onSave={handleUpdateProperty} onCancel={() => setEditingPropertyId(null)} initialTab={viewParams?.initialTab} />
       )}
 
       {/* MOBILE BOTTOM BAR */}

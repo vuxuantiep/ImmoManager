@@ -10,6 +10,7 @@ interface PropertyEditorProps {
   transactions: Transaction[];
   onSave: (updatedProperty: Property, updatedTransactions?: Transaction[]) => void;
   onCancel: () => void;
+  initialTab?: 'general' | 'units' | 'costs' | 'meters' | 'finance';
 }
 
 type AllocationKey = 'm2' | 'unit';
@@ -23,8 +24,8 @@ interface EditableBreakdownItem {
   share: number;
 }
 
-const PropertyEditor: React.FC<PropertyEditorProps> = ({ property, tenants, owners, transactions, onSave, onCancel }) => {
-  const [activeTab, setActiveTab] = useState<'general' | 'units' | 'costs' | 'meters' | 'finance'>('general');
+const PropertyEditor: React.FC<PropertyEditorProps> = ({ property, tenants, owners, transactions, onSave, onCancel, initialTab }) => {
+  const [activeTab, setActiveTab] = useState<'general' | 'units' | 'costs' | 'meters' | 'finance'>(initialTab || 'general');
   const [editedProperty, setEditedProperty] = useState<Property>({ ...property });
   const [localTransactions, setLocalTransactions] = useState<Transaction[]>([...transactions]);
   const [editingUnitId, setEditingUnitId] = useState<string | null>(null);

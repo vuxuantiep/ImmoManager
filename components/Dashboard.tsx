@@ -73,10 +73,10 @@ const Dashboard: React.FC<DashboardProps> = ({ properties, tenants, transactions
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
-        <StatCard title="Objekte" value={properties.length.toString()} icon="fa-building" color="text-blue-600" bgColor="bg-blue-100" />
-        <StatCard title="Mieter" value={tenants.length.toString()} icon="fa-users" color="text-purple-600" bgColor="bg-purple-100" />
-        <StatCard title="Belegung" value={`${occupancyRate.toFixed(0)}%`} icon="fa-door-open" color="text-emerald-600" bgColor="bg-emerald-100" />
-        <StatCard title="Cashflow" value={`${(income - expenses).toFixed(0)}€`} icon="fa-euro-sign" color="text-indigo-600" bgColor="bg-indigo-100" />
+        <button onClick={() => setView('properties')} className="text-left"><StatCard title="Objekte" value={properties.length.toString()} icon="fa-building" color="text-blue-600" bgColor="bg-blue-100" /></button>
+        <button onClick={() => setView('tenants')} className="text-left"><StatCard title="Mieter" value={tenants.length.toString()} icon="fa-users" color="text-purple-600" bgColor="bg-purple-100" /></button>
+        <button onClick={() => setView('properties')} className="text-left"><StatCard title="Belegung" value={`${occupancyRate.toFixed(0)}%`} icon="fa-door-open" color="text-emerald-600" bgColor="bg-emerald-100" /></button>
+        <button onClick={() => setView('finances')} className="text-left"><StatCard title="Cashflow" value={`${(income - expenses).toFixed(0)}€`} icon="fa-euro-sign" color="text-indigo-600" bgColor="bg-indigo-100" /></button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -101,6 +101,45 @@ const Dashboard: React.FC<DashboardProps> = ({ properties, tenants, transactions
               </div>
               <span className="text-[10px] font-bold text-slate-500 uppercase">Brief erstellen</span>
             </button>
+          </div>
+
+          <div className="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-slate-100">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-lg font-bold text-slate-800">Meine Objekte (Schnellzugriff)</h3>
+              <button onClick={() => setView('properties')} className="text-xs font-bold text-indigo-600 hover:text-indigo-700 transition">Alle anzeigen <i className="fa-solid fa-arrow-right"></i></button>
+            </div>
+            <div className="space-y-4">
+              {properties.map(p => (
+                <div key={p.id} className="p-4 border border-slate-100 rounded-xl hover:border-indigo-100 transition shadow-sm bg-slate-50/50">
+                  <div className="flex justify-between items-start mb-3">
+                    <div>
+                      <h4 className="font-bold text-slate-800 text-sm">{p.name}</h4>
+                      <p className="text-xs text-slate-500">{p.address}</p>
+                    </div>
+                    <button onClick={() => setView('properties', { editPropertyId: p.id, tab: 'general' })} className="text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-indigo-600 hover:text-white transition">
+                      Bearbeiten
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    <button onClick={() => setView('properties', { editPropertyId: p.id, tab: 'units' })} className="bg-white p-2 text-center rounded-lg border border-slate-100 hover:border-indigo-300 transition">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase">Einheiten</p>
+                      <p className="font-black text-slate-700">{p.units.length}</p>
+                    </button>
+                    <button onClick={() => setView('properties', { editPropertyId: p.id, tab: 'costs' })} className="bg-white p-2 text-center rounded-lg border border-slate-100 hover:border-indigo-300 transition">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase">Ausgaben</p>
+                      <p className="font-black text-slate-700"><i className="fa-solid fa-file-invoice-dollar text-slate-300"></i></p>
+                    </button>
+                    <button onClick={() => setView('properties', { editPropertyId: p.id, tab: 'meters' })} className="bg-white p-2 text-center rounded-lg border border-slate-100 hover:border-indigo-300 transition">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase">Zähler</p>
+                      <p className="font-black text-slate-700">{p.meterReadings?.length || 0}</p>
+                    </button>
+                  </div>
+                </div>
+              ))}
+              {properties.length === 0 && (
+                <p className="text-sm text-center text-slate-400 py-4">Noch keine Objekte angelegt.</p>
+              )}
+            </div>
           </div>
 
           <div className="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-slate-100">

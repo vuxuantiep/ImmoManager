@@ -8,9 +8,11 @@ interface PropertiesListProps {
   setProperties: React.Dispatch<React.SetStateAction<Property[]>>;
   onGenerateExpose?: (propertyId: string) => void;
   setView?: (view: View, params?: any) => void;
+  onEditProperty: (id: string, tab?: 'general' | 'units' | 'costs' | 'meters' | 'finance') => void;
+  onCheckLimit?: () => boolean;
 }
 
-const PropertiesList: React.FC<PropertiesListProps> = ({ properties, setProperties, onGenerateExpose, setView }) => {
+const PropertiesList: React.FC<PropertiesListProps> = ({ properties, setProperties, onGenerateExpose, setView, onEditProperty, onCheckLimit }) => {
   const [showAdd, setShowAdd] = useState(false);
   const [selectedPropId, setSelectedPropId] = useState<string | null>(null);
   const [newProp, setNewProp] = useState({ name: '', address: '', type: HouseType.APARTMENT_BLOCK });
@@ -193,18 +195,18 @@ const PropertiesList: React.FC<PropertiesListProps> = ({ properties, setProperti
                 </div>
                 
                 <div className="grid grid-cols-3 gap-4 border-t border-slate-100 pt-4 mb-4">
-                  <div className="text-center p-2 bg-slate-50 rounded-xl">
+                  <button onClick={() => onEditProperty(p.id, 'units')} className="text-center p-2 bg-slate-50 hover:bg-indigo-50 transition rounded-xl cursor-pointer">
                     <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Einheiten</p>
                     <p className="text-lg font-bold text-slate-800">{p.units.length}</p>
-                  </div>
-                  <div className="text-center p-2 bg-slate-50 rounded-xl">
+                  </button>
+                  <button onClick={() => onEditProperty(p.id, 'general')} className="text-center p-2 bg-slate-50 hover:bg-indigo-50 transition rounded-xl cursor-pointer">
                     <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Gesamtfläche</p>
                     <p className="text-lg font-bold text-slate-800">{p.units.reduce((s, u) => s + u.size, 0)} m²</p>
-                  </div>
-                  <div className="text-center p-2 bg-slate-50 rounded-xl">
+                  </button>
+                  <button onClick={() => onEditProperty(p.id, 'meters')} className="text-center p-2 bg-slate-50 hover:bg-indigo-50 transition rounded-xl cursor-pointer">
                     <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Zählerstände</p>
                     <p className="text-lg font-bold text-slate-800">{p.meterReadings?.length || 0}</p>
-                  </div>
+                  </button>
                 </div>
 
                 {selectedPropId === p.id && (
