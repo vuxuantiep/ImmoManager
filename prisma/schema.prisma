@@ -1,0 +1,89 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String?
+  tier      String   @default("FREE")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  properties   Property[]
+  tenants      Tenant[]
+  transactions Transaction[]
+  owners       Owner[]
+}
+
+model Owner {
+  id        String   @id @default(uuid())
+  name      String
+  email     String
+  phone     String?
+  address   String?
+  zip       String?
+  city      String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  properties Property[]
+}
+
+model Property {
+  id        String   @id @default(uuid())
+  name      String
+  type      String
+  address   String
+  ownerId   String
+  userId    String
+  
+  owner     Owner    @relation(fields: [ownerId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+  units     Unit[]
+  transactions Transaction[]
+}
+
+model Unit {
+  id                String   @id @default(uuid())
+  number            String
+  type              String
+  size              Float
+  baseRent          Float
+  utilityPrepayment Float
+  propertyId        String
+  property          Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  tenants           Tenant[]
+}
+
+model Tenant {
+  id        String   @id @default(uuid())
+  name      String
+  email     String?
+  phone     String?
+  unitId    String
+  userId    String
+  
+  unit      Unit     @relation(fields: [unitId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Transaction {
+  id          String   @id @default(uuid())
+  date        String
+  amount      Float
+  type        String
+  category    String
+  description String?
+  propertyId  String?
+  tenantId    String?
+  userId      String
+
+  property    Property? @relation(fields: [propertyId], references: [id])
+  user        User      @relation(fields: [userId], references: [id])
+}

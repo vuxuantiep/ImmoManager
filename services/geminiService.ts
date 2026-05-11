@@ -265,10 +265,13 @@ export const extractMeterData = async (
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
-      contents: [
-        { text: prompt },
-        { inlineData: { data, mimeType } }
-      ],
+      // Fix: contents must wrap parts in an object
+      contents: {
+        parts: [
+          { text: prompt },
+          { inlineData: { data, mimeType } }
+        ]
+      },
       config: {
         responseMimeType: 'application/json',
         responseSchema: {
@@ -426,10 +429,13 @@ export const analyzeContract = async (
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
-      contents: [
-        { text: prompt },
-        { inlineData: { data: base64Data, mimeType: mimeType } }
-      ],
+      // Fix: contents must wrap parts in an object
+      contents: {
+        parts: [
+          { text: prompt },
+          { inlineData: { data: base64Data, mimeType: mimeType } }
+        ]
+      },
       config: {
         responseMimeType: 'application/json',
         responseSchema: {

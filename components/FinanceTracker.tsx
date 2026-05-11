@@ -1,20 +1,26 @@
 
 import React, { useState, useRef } from 'react';
-import { Transaction, TransactionType, Property } from '../types';
+import { Transaction, TransactionType, Property, Tenant, Owner } from '../types';
+
+import { UtilityBillingManager } from './UtilityBillingManager';
+import { CameraCapture } from './CameraCapture';
 
 interface FinanceTrackerProps {
   transactions: Transaction[];
   addTransaction: (t: Transaction) => void;
   properties: Property[];
+  tenants: Tenant[];
+  owners: Owner[];
 }
 
 interface CSVRow {
   [key: string]: string;
 }
 
-const FinanceTracker: React.FC<FinanceTrackerProps> = ({ transactions, addTransaction, properties }) => {
+const FinanceTracker: React.FC<FinanceTrackerProps> = ({ transactions, addTransaction, properties, tenants, owners }) => {
   const [showForm, setShowForm] = useState(false);
   const [showImport, setShowImport] = useState(false);
+  const [showCamera, setShowCamera] = useState(false);
   const [importData, setImportData] = useState<{ headers: string[], rows: CSVRow[] } | null>(null);
   const [mapping, setMapping] = useState({ date: '', amount: '', description: '' });
   const [pendingTransactions, setPendingTransactions] = useState<Partial<Transaction>[]>([]);
@@ -127,7 +133,13 @@ const FinanceTracker: React.FC<FinanceTrackerProps> = ({ transactions, addTransa
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-bold text-slate-800">Transaktionen & Buchhaltung</h2>
-        <div className="flex space-x-2">
+        <div className="flex flex-wrap gap-2 justify-end">
+          <button 
+            onClick={() => setShowCamera(true)}
+            className="bg-white text-indigo-600 border border-indigo-200 px-4 py-2 rounded-xl hover:bg-indigo-50 transition font-bold text-sm"
+          >
+            <i className="fa-solid fa-camera mr-2"></i> Zähler scannen
+          </button>
           <button 
             onClick={() => setShowImport(true)}
             className="bg-white text-indigo-600 border border-indigo-200 px-4 py-2 rounded-xl hover:bg-indigo-50 transition font-bold text-sm"
@@ -142,6 +154,23 @@ const FinanceTracker: React.FC<FinanceTrackerProps> = ({ transactions, addTransa
           </button>
         </div>
       </div>
+
+      {showCamera && (
+        <CameraCapture 
+          onCapture={(value, type) => {
+             setShowCamera(false);
+             setShowForm(true);
+             setForm(prev => ({
+               ...prev,
+               type: TransactionType.EXPENSE,
+               category: type === 'water' ? 'Wasser/Abwasser' : 'Heizung/Warmwasser',
+               description: `Zählerstand ${type === 'water' ? 'Wasser' : 'Heizung'}: ${value}`,
+               amount: 0 // Der Nutzer muss den Rechnungsbetrag ergänzen
+             }));
+          }}
+          onCancel={() => setShowCamera(false)}
+        />
+      )}
 
       {showImport && (
         <div className="bg-white p-6 rounded-2xl shadow-xl border border-indigo-100 animate-in slide-in-from-top-2 duration-300">
@@ -427,6 +456,17 @@ const FinanceTracker: React.FC<FinanceTrackerProps> = ({ transactions, addTransa
           ))}
         </div>
       </div>
+
+      {/* Betriebskostenabrechnung Sektion */}
+      {properties.map(property => (
+        <UtilityBillingManager 
+          key={property.id}
+          property={property}
+          tenants={tenants.filter(t => property.units.some(u => u.id === t.unitId))}
+          transactions={transactions}
+          ownerDetails={owners.find(o => o.id === property.ownerId) || owners[0]}
+        />
+      ))}
     </div>
   );
 };

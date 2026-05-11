@@ -1,9 +1,28 @@
 
+export enum SubscriptionTier {
+  FREE = 'Free',
+  STANDARD = 'Standard',
+  ENTERPRISE = 'Enterprise'
+}
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  tier: SubscriptionTier;
+  avatarUrl?: string;
+}
+
 export enum HouseType {
   DETACHED = 'Einfamilienhaus',
   SEMI_DETACHED = 'Doppelhaushälfte',
   APARTMENT_BLOCK = 'Mehrfamilienhaus',
   CONDO = 'Eigentumswohnung'
+}
+
+export enum UnitType {
+  RESIDENTIAL = 'Wohnung',
+  COMMERCIAL = 'Gewerbe'
 }
 
 export enum MeterType {
@@ -18,6 +37,13 @@ export enum ReminderCategory {
   TAX = 'Steuererklärung',
   LOAN_EXPIRY = 'Darlehensauslauf',
   OTHER = 'Sonstiges'
+}
+
+export interface Template {
+  id: string;
+  name: string;
+  subject: string;
+  content: string; 
 }
 
 export interface Reminder {
@@ -72,10 +98,17 @@ export interface PropertyDocument {
 export interface Unit {
   id: string;
   number: string;
-  size: number; // m²
+  type: UnitType;
+  size: number;
+  rooms?: number;
+  floor?: string;
   baseRent: number;
   utilityPrepayment: number;
   tenantId?: string;
+  imageUrl?: string;
+  documents?: PropertyDocument[];
+  meterReadings?: MeterReading[];
+  isVatSubject?: boolean; 
 }
 
 export interface Loan {
@@ -83,9 +116,9 @@ export interface Loan {
   bankName: string;
   totalAmount: number;
   currentBalance: number;
-  interestRate: number; // in %
-  repaymentRate: number; // in % (Tilgung)
-  fixedUntil: string; // Date
+  interestRate: number;
+  repaymentRate: number;
+  fixedUntil: string;
   monthlyInstallment: number;
 }
 
@@ -94,8 +127,18 @@ export interface Property {
   name: string;
   type: HouseType;
   address: string;
+  ownerId?: string; 
+  
+  yearBuilt?: number;
+  plotSize?: number;
+  livingSpace?: number;
+  heatingType?: string;
+  energyClass?: string;
+  
   purchasePrice?: number;
   purchaseDate?: string;
+  ancillaryCosts?: number; 
+  
   units: Unit[];
   loans?: Loan[];
   documents?: PropertyDocument[];
@@ -126,24 +169,35 @@ export interface Transaction {
   amount: number;
   date: string;
   description: string;
+  isUtilityRelevant?: boolean; 
 }
 
 export interface Handyman {
   id: string;
   name: string;
+  company?: string;
   trade: string;
   phone: string;
   email: string;
   address?: string;
+  zip?: string;
+  city?: string;
 }
 
 export interface Owner {
   id: string;
   name: string;
+  company?: string;
   email: string;
   phone: string;
-  address?: string;
+  address: string;
+  zip: string;
+  city: string;
   taxId?: string;
+  vatId?: string;
+  bankName?: string;
+  iban?: string;
+  bic?: string;
 }
 
 export interface Stakeholder {
@@ -152,6 +206,7 @@ export interface Stakeholder {
   role: string; 
   email: string;
   phone: string;
+  address?: string;
   note?: string;
 }
 
