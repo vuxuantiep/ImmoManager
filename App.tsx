@@ -1,14 +1,14 @@
 
 import React, { useState } from 'react';
 import { View, Property, Tenant, Transaction, HouseType, Reminder, Owner, UnitType, TransactionType, SubscriptionTier, User } from './types.ts';
-import Sidebar from './Sidebar.tsx';
-import Dashboard from './Dashboard.tsx';
-import PropertiesList from './PropertiesList.tsx';
-import TenantManager from './TenantManager.tsx';
-import FinanceTracker from './FinanceTracker.tsx';
-import ContactManager from './ContactManager.tsx';
-import AITools from './AITools.tsx';
-import InvestorDashboard from './InvestorDashboard.tsx';
+import Sidebar from './components/Sidebar.tsx';
+import Dashboard from './components/Dashboard.tsx';
+import PropertiesList from './components/PropertiesList.tsx';
+import TenantManager from './components/TenantManager.tsx';
+import FinanceTracker from './components/FinanceTracker.tsx';
+import ContactManager from './components/ContactManager.tsx';
+import AITools from './components/AITools.tsx';
+import InvestorDashboard from './components/InvestorDashboard.tsx';
 import PropertyEditor from './PropertyEditor.tsx';
 import AIFeedbackAssistant from './AIFeedbackAssistant.tsx';
 
@@ -112,12 +112,11 @@ const App: React.FC = () => {
           </div>
         </header>
 
-        <div className="flex-1 p-6 md:p-10 w-full max-w-7xl mx-auto">
+        <div className="flex-1 p-4 md:p-10 w-full max-w-7xl mx-auto pb-24 lg:pb-10">
           {currentView === 'dashboard' && (
             <Dashboard 
               properties={properties} tenants={tenants} transactions={transactions} 
               reminders={reminders} setReminders={setReminders} setView={setView} 
-              onEditProperty={setEditingPropertyId}
             />
           )}
           {currentView === 'properties' && (
@@ -190,8 +189,24 @@ const App: React.FC = () => {
       {currentEditingProperty && (
         <PropertyEditor property={currentEditingProperty} tenants={tenants} owners={owners} templates={[]} transactions={transactions} onSave={handleUpdateProperty} onCancel={() => setEditingPropertyId(null)} />
       )}
+
+      {/* MOBILE BOTTOM BAR */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 flex justify-around items-center p-2 pb-safe lg:hidden z-40 shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
+        <BottomBarBtn icon="fa-chart-pie" label="Dash" active={currentView === 'dashboard'} onClick={() => setView('dashboard')} />
+        <BottomBarBtn icon="fa-building" label="Objekte" active={currentView === 'properties'} onClick={() => setView('properties')} />
+        <BottomBarBtn icon="fa-wallet" label="Finanzen" active={currentView === 'finances'} onClick={() => setView('finances')} />
+        <BottomBarBtn icon="fa-wand-magic-sparkles" label="KI Tools" active={currentView === 'tools'} onClick={() => setView('tools')} />
+        <BottomBarBtn icon="fa-bars" label="Menü" active={false} onClick={() => setIsSidebarOpen(true)} />
+      </div>
     </div>
   );
 };
+
+const BottomBarBtn = ({ icon, label, active, onClick }: { icon: string, label: string, active: boolean, onClick: () => void }) => (
+  <button onClick={onClick} className={`flex flex-col items-center justify-center p-2 transition-colors ${active ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}>
+    <i className={`fa-solid ${icon} text-lg mb-1 ${active ? 'animate-bounce' : ''}`}></i>
+    <span className="text-[9px] font-black uppercase">{label}</span>
+  </button>
+);
 
 export default App;

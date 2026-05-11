@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Property, Unit, Loan, Tenant, PropertyDocument, Owner, UnitType, Template, Transaction, MeterType, MeterReading, TransactionType } from './types.ts';
+import { CameraCapture } from './components/CameraCapture.tsx';
 
 interface PropertyEditorProps {
   property: Property;
@@ -36,6 +37,8 @@ const PropertyEditor: React.FC<PropertyEditorProps> = ({ property, tenants, owne
   const [formTotalSpace, setFormTotalSpace] = useState(0);
   const [formUnitSize, setFormUnitSize] = useState(0);
   const [editableBreakdown, setEditableBreakdown] = useState<EditableBreakdownItem[]>([]);
+  const [showCameraScanner, setShowCameraScanner] = useState(false);
+  const [targetUnitForScanner, setTargetUnitForScanner] = useState<string | null>(null);
 
   // Added missing export functions referenced in the UI
   const handleDownloadWord = () => {
@@ -49,7 +52,7 @@ const PropertyEditor: React.FC<PropertyEditorProps> = ({ property, tenants, owne
 
   const defaultTotalLivingSpace = editedProperty.units.reduce((sum, u) => sum + u.size, 0);
   const totalUnitsCount = editedProperty.units.length;
-  const houseCosts = localTransactions.filter(t => t.propertyId === editedProperty.id && t.isUtilityRelevant);
+  const houseCosts = useMemo(() => localTransactions.filter(t => t.propertyId === editedProperty.id && t.isUtilityRelevant), [localTransactions, editedProperty.id]);
   const selectedOwner = owners.find(o => o.id === editedProperty.ownerId);
   const ownerName = selectedOwner?.company || selectedOwner?.name || "Hausverwaltung";
 
@@ -58,8 +61,8 @@ const PropertyEditor: React.FC<PropertyEditorProps> = ({ property, tenants, owne
 
   useEffect(() => {
     if (editingUnit) {
-      setFormTotalSpace(defaultTotalLivingSpace || 100);
-      setFormUnitSize(editingUnit.size || 50);
+      setFormTotalSpace(prev => prev !== (defaultTotalLivingSpace || 100) ? (defaultTotalLivingSpace || 100) : prev);
+      setFormUnitSize(prev => prev !== (editingUnit.size || 50) ? (editingUnit.size || 50) : prev);
     }
   }, [editingUnitId, defaultTotalLivingSpace, editingUnit]);
 
@@ -71,15 +74,18 @@ const PropertyEditor: React.FC<PropertyEditorProps> = ({ property, tenants, owne
 
   useEffect(() => {
     if (editingUnit && (unitTab === 'utility' || showLetterForm)) {
-      const items = houseCosts.map(t => ({
-        id: t.id,
-        category: t.category,
-        total: t.amount,
-        keyType: 'm2' as AllocationKey,
-        keyLabel: `${formUnitSize} / ${formTotalSpace} m²`,
-        share: calculateItemShare(t.amount, 'm2', formUnitSize, formTotalSpace)
-      }));
-      setEditableBreakdown(items);
+      setEditableBreakdown(prev => {
+        const items = houseCosts.map(t => ({
+          id: t.id,
+          category: t.category,
+          total: t.amount,
+          keyType: 'm2' as AllocationKey,
+          keyLabel: `${formUnitSize} / ${formTotalSpace} m²`,
+          share: calculateItemShare(t.amount, 'm2', formUnitSize, formTotalSpace)
+        }));
+        if (JSON.stringify(prev) === JSON.stringify(items)) return prev;
+        return items;
+      });
     }
   }, [editingUnitId, unitTab, localTransactions, formTotalSpace, formUnitSize, showLetterForm, editingUnit, totalUnitsCount, houseCosts]);
 
@@ -262,7 +268,8 @@ const PropertyEditor: React.FC<PropertyEditorProps> = ({ property, tenants, owne
                        <button onClick={() => updateField('meterReadings', editedProperty.meterReadings?.filter(m => m.id !== meter.id))} className="absolute top-4 right-4 text-slate-300 hover:text-red-500"><i className="fa-solid fa-trash-can"></i></button>
                      </div>
                    ))}
-                   <button onClick={() => updateField('meterReadings', [...(editedProperty.meterReadings || []), { id: 'm'+Date.now(), type: MeterType.WATER, value: 0, unit: 'm³', date: new Date().toISOString().split('T')[0], serialNumber: '' }])} className="border-2 border-dashed border-slate-200 rounded-3xl p-8 flex flex-col items-center justify-center text-slate-400 hover:text-indigo-600 transition shadow-sm font-black uppercase text-[10px]"><i className="fa-solid fa-plus mb-2"></i>Zähler hinzufügen</button>
+                   <button onClick={() => updateField('meterReadings', [...(editedProperty.meterReadings || []), { id: 'm'+Date.now(), type: MeterType.WATER, value: 0, unit: 'm³', date: new Date().toISOString().split('T')[0], serialNumber: '' }])} className="border-2 border-dashed border-slate-200 rounded-3xl p-8 flex flex-col items-center justify-center text-slate-400 hover:text-indigo-600 transition shadow-sm font-black uppercase text-[10px]"><i className="fa-solid fa-plus mb-2"></i>Zähler manuell</button>
+                   <button onClick={() => { setTargetUnitForScanner(null); setShowCameraScanner(true); }} className="border-2 border-dashed border-indigo-200 bg-indigo-50/50 rounded-3xl p-8 flex flex-col items-center justify-center text-indigo-500 hover:bg-indigo-100 transition shadow-sm font-black uppercase text-[10px]"><i className="fa-solid fa-camera mb-2 text-xl"></i>KI Foto Scan</button>
                 </div>
                 <div className="flex justify-end">
                    <button onClick={() => setActiveTab('general')} className="bg-emerald-600 text-white px-8 py-3 rounded-2xl font-black text-[10px] uppercase shadow-lg">Änderungen Zähler übernehmen</button>
@@ -381,7 +388,7 @@ const PropertyEditor: React.FC<PropertyEditorProps> = ({ property, tenants, owne
                  )}
 
                  {unitTab === 'meters' && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-in fade-in">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 animate-in fade-in">
                        {editingUnit.meterReadings?.map(meter => (
                           <div key={meter.id} className="bg-white p-5 rounded-3xl border border-slate-200 relative shadow-sm">
                              <h4 className="font-black text-indigo-600 uppercase text-[10px] mb-4 tracking-widest">{meter.type} Zähler</h4>
@@ -393,6 +400,7 @@ const PropertyEditor: React.FC<PropertyEditorProps> = ({ property, tenants, owne
                           </div>
                        ))}
                        <button onClick={() => updateUnitState(editingUnit.id, 'meterReadings', [...(editingUnit.meterReadings || []), { id: 'm'+Date.now(), type: MeterType.WATER, value: 0, unit: 'm³', date: new Date().toISOString().split('T')[0], serialNumber: '' }])} className="border-2 border-dashed border-slate-200 rounded-3xl p-8 flex flex-col items-center justify-center text-slate-400 hover:text-indigo-600 transition font-black uppercase text-[10px]"><i className="fa-solid fa-plus mb-2"></i>Unit-Zähler +</button>
+                       <button onClick={() => { setTargetUnitForScanner(editingUnit.id); setShowCameraScanner(true); }} className="border-2 border-dashed border-indigo-200 bg-indigo-50/50 rounded-3xl p-8 flex flex-col items-center justify-center text-indigo-500 hover:bg-indigo-100 transition shadow-sm font-black uppercase text-[10px]"><i className="fa-solid fa-camera mb-2 text-xl"></i>KI Foto Scan</button>
                     </div>
                  )}
 
@@ -523,6 +531,29 @@ const PropertyEditor: React.FC<PropertyEditorProps> = ({ property, tenants, owne
             </div>
           </div>
         </div>
+      )}
+
+      {/* CAMERA VIEWER */}
+      {showCameraScanner && (
+         <CameraCapture 
+           onCapture={(value, type) => {
+             setShowCameraScanner(false);
+             const newReading = {
+               id: 'm'+Date.now(),
+               type: type === 'water' ? MeterType.WATER : MeterType.GAS, // assuming Heating means mostly Gas/Heat
+               value: value,
+               unit: type === 'water' ? 'm³' : 'kWh',
+               date: new Date().toISOString().split('T')[0],
+               serialNumber: 'KI-Scanned'
+             };
+             if (targetUnitForScanner) {
+                updateUnitState(targetUnitForScanner, 'meterReadings', [...(editingUnit?.meterReadings || []), newReading]);
+             } else {
+                updateField('meterReadings', [...(editedProperty.meterReadings || []), newReading]);
+             }
+           }} 
+           onCancel={() => setShowCameraScanner(false)} 
+         />
       )}
     </div>
   );

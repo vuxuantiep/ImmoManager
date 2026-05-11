@@ -96,7 +96,8 @@ const TenantManager: React.FC<TenantManagerProps> = ({ tenants, setTenants, prop
       )}
 
       <div className="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
-        <div className="overflow-x-auto">
+        {/* DESKTOP TABLE */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-left">
             <thead className="bg-slate-50 text-slate-500 text-[9px] font-black uppercase tracking-[0.2em] border-b">
               <tr>
@@ -171,6 +172,69 @@ const TenantManager: React.FC<TenantManagerProps> = ({ tenants, setTenants, prop
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* MOBILE CARDS */}
+        <div className="md:hidden divide-y divide-slate-100">
+          {tenants.length > 0 ? (
+            tenants.map(t => {
+              const assignedProperty = properties.find(p => p.units.some(u => u.tenantId === t.id));
+              const assignedUnit = assignedProperty?.units.find(u => u.tenantId === t.id);
+              
+              return (
+                <div key={t.id} className="p-4 flex flex-col gap-3">
+                  <div className="flex justify-between items-start">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 font-black text-sm shrink-0">
+                        {t.firstName.charAt(0)}{t.lastName.charAt(0)}
+                      </div>
+                      <div>
+                        <p className="font-black text-slate-800 text-sm">{t.firstName} {t.lastName}</p>
+                        <p className="text-[9px] font-bold text-slate-400 uppercase">Seit {t.startDate || 'N/A'}</p>
+                      </div>
+                    </div>
+                    <button 
+                      onClick={() => handleDeleteTenant(t.id)} 
+                      className="text-slate-300 hover:text-rose-600 p-1"
+                    >
+                      <i className="fa-solid fa-trash-can"></i>
+                    </button>
+                  </div>
+
+                  <div className="flex gap-4 items-center mt-2">
+                    <div className="flex-1 bg-slate-50 p-2 rounded-lg">
+                      {assignedProperty ? (
+                        <>
+                          <p className="text-xs font-black text-slate-700 truncate">{assignedProperty.name}</p>
+                          <p className="text-[9px] font-bold text-indigo-600 uppercase tracking-tighter">Einheit {assignedUnit?.number}</p>
+                        </>
+                      ) : (
+                        <span className="text-[9px] font-black bg-amber-50 text-amber-600 px-2 py-1 rounded-md uppercase">Nicht zugewiesen</span>
+                      )}
+                    </div>
+                    <div className="flex-1 right text-right text-xs text-slate-600">
+                      <p className="font-bold truncate">{t.email || '-'}</p>
+                      <p>{t.phone || '-'}</p>
+                    </div>
+                  </div>
+
+                  <button 
+                     onClick={() => handleGenerateFinancialEmail(t, 'rent_adjustment')} 
+                     disabled={isGenerating === t.id} 
+                     className="w-full mt-2 flex justify-center items-center gap-2 text-[10px] font-black uppercase tracking-widest bg-indigo-50 text-indigo-600 px-4 py-3 rounded-xl shadow-sm hover:bg-indigo-100 transition disabled:opacity-50"
+                   >
+                     {isGenerating === t.id ? <i className="fa-solid fa-spinner fa-spin"></i> : <i className="fa-solid fa-euro-sign"></i>}
+                     Miete anpassen KI
+                   </button>
+                </div>
+              );
+            })
+          ) : (
+            <div className="p-8 text-center text-slate-400 text-sm font-medium">
+              <i className="fa-solid fa-users-slash text-2xl mb-2 opacity-20 block"></i>
+              Keine Mieter erfasst.
+            </div>
+          )}
         </div>
       </div>
 

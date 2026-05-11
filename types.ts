@@ -152,7 +152,10 @@ export interface Tenant {
   lastName: string;
   email: string;
   phone: string;
+  unitId?: string; // Add unitId if missing
+  userId?: string; // Added userId if missing
   startDate: string;
+  persons?: number;
 }
 
 export enum TransactionType {

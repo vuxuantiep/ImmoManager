@@ -154,23 +154,59 @@ const FinanceTracker: React.FC<FinanceTrackerProps> = ({ transactions, addTransa
       )}
 
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-        <table className="w-full text-left">
-          <thead className="bg-slate-50 border-b border-slate-100 text-slate-500 text-[10px] font-black uppercase tracking-widest">
-            <tr><th className="px-6 py-5">Datum</th><th className="px-6 py-5">Immobilie</th><th className="px-6 py-5">Kategorie</th><th className="px-6 py-5">Bezeichnung</th><th className="px-6 py-5 text-right">Betrag</th></tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {transactions.slice().sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map(t => (
-              <tr key={t.id} className="hover:bg-slate-50/50 transition">
-                <td className="px-6 py-4 text-xs font-bold text-slate-400">{t.date}</td>
-                <td className="px-6 py-4 text-sm font-bold text-slate-800">{properties.find(p => p.id === t.propertyId)?.name || 'Unbekannt'}</td>
-                <td className="px-6 py-4"><span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase bg-slate-100 text-slate-600">{t.category}</span></td>
-                <td className="px-6 py-4 text-sm text-slate-600 italic">{t.description}</td>
-                <td className={`px-6 py-4 text-right font-black ${t.type === TransactionType.INCOME ? 'text-emerald-600' : 'text-red-600'}`}>{t.type === TransactionType.INCOME ? '+' : '-'}{t.amount.toLocaleString('de-DE', { style: 'currency', currency: 'EUR' })}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        {/* DESKTOP TABLE */}
+        <div className="hidden md:block overflow-x-auto">
+          <table className="w-full text-left">
+            <thead className="bg-slate-50 border-b border-slate-100 text-slate-500 text-[10px] font-black uppercase tracking-widest">
+              <tr><th className="px-6 py-5">Datum</th><th className="px-6 py-5">Immobilie</th><th className="px-6 py-5">Kategorie</th><th className="px-6 py-5">Bezeichnung</th><th className="px-6 py-5 text-right">Betrag</th></tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {transactions.slice().sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map(t => (
+                <tr key={t.id} className="hover:bg-slate-50/50 transition">
+                  <td className="px-6 py-4 text-xs font-bold text-slate-400">{t.date}</td>
+                  <td className="px-6 py-4 text-sm font-bold text-slate-800">{properties.find(p => p.id === t.propertyId)?.name || 'Unbekannt'}</td>
+                  <td className="px-6 py-4"><span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase bg-slate-100 text-slate-600">{t.category}</span></td>
+                  <td className="px-6 py-4 text-sm text-slate-600 italic">{t.description}</td>
+                  <td className={`px-6 py-4 text-right font-black ${t.type === TransactionType.INCOME ? 'text-emerald-600' : 'text-red-600'}`}>{t.type === TransactionType.INCOME ? '+' : '-'}{t.amount.toLocaleString('de-DE', { style: 'currency', currency: 'EUR' })}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* MOBILE CARDS */}
+        <div className="md:hidden divide-y divide-slate-100">
+          {transactions.slice().sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map(t => (
+            <div key={t.id} className="p-4 flex flex-col gap-2">
+              <div className="flex justify-between items-start">
+                <div>
+                  <span className="text-[10px] font-bold text-slate-400">{t.date}</span>
+                  <p className="text-sm font-bold text-slate-800">{properties.find(p => p.id === t.propertyId)?.name || 'Unbekannt'}</p>
+                </div>
+                <span className={`text-sm font-black ${t.type === TransactionType.INCOME ? 'text-emerald-600' : 'text-red-600'}`}>{t.type === TransactionType.INCOME ? '+' : '-'}{t.amount.toLocaleString('de-DE', { style: 'currency', currency: 'EUR' })}</span>
+              </div>
+              <div className="flex justify-between items-center mt-1">
+                <span className="px-2 py-0.5 rounded-md text-[9px] font-black uppercase bg-slate-100 text-slate-500">{t.category}</span>
+                <span className="text-xs text-slate-500 truncate ml-3 max-w-[60%] text-right italic">{t.description}</span>
+              </div>
+            </div>
+          ))}
+          {transactions.length === 0 && (
+            <div className="p-6 text-center text-slate-400 text-sm">Keine Transaktionen gefunden.</div>
+          )}
+        </div>
       </div>
+
+      {/* Betriebskostenabrechnung Sektion */}
+      {properties.map(property => (
+        <UtilityBillingManager 
+          key={property.id}
+          property={property}
+          tenants={tenants.filter(t => property.units.some(u => u.id === t.unitId))}
+          transactions={transactions}
+          ownerDetails={owners.find(o => o.id === property.ownerId) || owners[0]}
+        />
+      ))}
     </div>
   );
 };
